@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据结构 · 智能教育平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--surface:#242d3f;
+  --border:rgba(99,120,180,0.18);--border2:rgba(99,120,180,0.32);
+  --blue:#4f8ef7;--blue-glow:rgba(79,142,247,0.22);
+  --teal:#34d4b0;--violet:#a78bfa;--rose:#f87171;
+  --text:#e4eaf5;--text2:#8b97b5;--text3:#5a6580;
+  --grad-blue:linear-gradient(135deg,#4f8ef7,#7c5ce8);
+  --grad-teal:linear-gradient(135deg,#34d4b0,#4f8ef7);
+  --grad-card:linear-gradient(145deg,#1e2a3f,#182035);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-serif}
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease,transform .45s ease}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(20px)}
+
+/* COVER */
+#cover{background:linear-gradient(135deg,#0d1117 0%,#111827 50%,#0d1a2d 100%);flex-direction:column;overflow:hidden}
+#cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 30%,rgba(79,142,247,.13) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 80% 70%,rgba(167,139,250,.1) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 60% 10%,rgba(52,212,176,.08) 0%,transparent 55%);animation:meshPulse 8s ease-in-out infinite alternate}
+#cover::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(99,120,180,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(99,120,180,.06) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 80%)}
+@keyframes meshPulse{0%{opacity:.7;transform:scale(1)}100%{opacity:1;transform:scale(1.05)}}
+.particle{position:absolute;border-radius:50%;animation:floatUp linear infinite;pointer-events:none}
+@keyframes floatUp{0%{transform:translateY(110vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) rotate(720deg);opacity:0}}
+.cover-inner{position:relative;z-index:2;text-align:center;max-width:640px;padding:2rem}
+.cover-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;border:1px solid rgba(79,142,247,.4);background:rgba(79,142,247,.08);border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--blue);margin-bottom:2.4rem;opacity:0;animation:fadeUp .7s .15s ease forwards}
+.chip-dot{width:6px;height:6px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+.cover-title{font-family:'Noto Serif SC',serif;font-size:clamp(2.2rem,5.5vw,3.8rem);font-weight:600;line-height:1.18;opacity:0;animation:fadeUp .7s .3s ease forwards}
+.cover-title .grad{background:var(--grad-blue);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cover-sub{margin-top:1.1rem;font-size:.95rem;font-weight:300;color:var(--text2);line-height:1.9;letter-spacing:.04em;opacity:0;animation:fadeUp .7s .45s ease forwards}
+.cover-tags{display:flex;gap:10px;justify-content:center;margin-top:1.6rem;opacity:0;animation:fadeUp .7s .55s ease forwards}
+.cover-tag{padding:4px 14px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+.ct-blue{background:rgba(79,142,247,.15);color:var(--blue)}.ct-teal{background:rgba(52,212,176,.15);color:var(--teal)}.ct-violet{background:rgba(167,139,250,.15);color:var(--violet)}
+.cover-divider{display:flex;align-items:center;gap:16px;margin:2.8rem auto;max-width:280px;opacity:0;animation:fadeUp .7s .65s ease forwards}
+.cover-divider::before,.cover-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(99,120,180,.35))}
+.cover-divider::after{transform:scaleX(-1)}
+.cover-divider span{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.15em;white-space:nowrap}
+.role-btns{display:flex;gap:1.2rem;justify-content:center;opacity:0;animation:fadeUp .7s .75s ease forwards}
+.role-btn{display:flex;align-items:center;gap:10px;padding:14px 30px;border:1px solid var(--border2);background:rgba(30,37,53,.6);backdrop-filter:blur(12px);color:var(--text);font-family:'Noto Sans SC',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;border-radius:10px;transition:all .25s ease;position:relative;overflow:hidden}
+.role-btn::before{content:'';position:absolute;inset:0;background:var(--grad-blue);opacity:0;transition:opacity .25s;border-radius:10px}
+.role-btn:hover::before{opacity:1}
+.role-btn:hover{border-color:transparent;transform:translateY(-2px);box-shadow:0 8px 32px rgba(79,142,247,.25)}
+.role-btn span,.role-btn svg{position:relative;z-index:1}
+.role-btn svg{width:18px;height:18px;flex-shrink:0}
+.role-btn.primary{background:var(--grad-blue);border-color:transparent;box-shadow:0 4px 20px rgba(79,142,247,.3)}
+.role-btn.primary::before{background:linear-gradient(135deg,#6ba4ff,#a78bfa)}
+.role-btn.primary:hover{box-shadow:0 8px 36px rgba(79,142,247,.45)}
+.cover-footnote{margin-top:3rem;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--text3);opacity:0;animation:fadeUp .7s 1s ease forwards}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(10,14,22,.75);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal{background:linear-gradient(145deg,#1e2a3f,#161f30);border:1px solid var(--border2);border-radius:16px;width:390px;padding:2.6rem;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);transform:translateY(24px) scale(.96);transition:transform .3s ease}
+.modal-overlay.active .modal{transform:none}
+.modal::before{content:'';position:absolute;top:0;left:24px;right:24px;height:2px;background:var(--grad-blue);border-radius:0 0 4px 4px}
+.modal-chip{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--blue);margin-bottom:1.2rem;display:flex;align-items:center;gap:6px}
+.modal-chip::before{content:'';display:inline-block;width:4px;height:4px;background:var(--teal);border-radius:50%}
+.modal h2{font-family:'Noto Serif SC',serif;font-size:1.5rem;font-weight:600;margin-bottom:.3rem}
+.modal-hint{font-size:.8rem;color:var(--text3);margin-bottom:2rem}
+.field{margin-bottom:1.3rem}
+.field label{display:block;font-size:.72rem;letter-spacing:.08em;color:var(--text2);margin-bottom:7px;font-weight:500}
+.field-wrap{position:relative}
+.field-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.field-icon svg{width:15px;height:15px}
+.field input{width:100%;padding:11px 14px 11px 40px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.88rem;outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+.field input::placeholder{color:var(--text3)}
+.modal-err{font-size:.77rem;color:var(--rose);min-height:16px;margin-bottom:.8rem}
+.btn-login{width:100%;padding:13px;background:var(--grad-blue);border:none;border-radius:8px;color:#fff;font-family:'Noto Sans SC',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;box-shadow:0 4px 20px rgba(79,142,247,.35);transition:all .2s}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(79,142,247,.45)}
+.modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:none;color:var(--text3);cursor:pointer;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .18s}
+.modal-close:hover{background:rgba(255,255,255,.12);color:var(--text)}
+
+/* DASHBOARD */
+#dashboard{flex-direction:column;background:var(--bg);overflow:hidden}
+#dashboard::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(79,142,247,.1) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 90% 90%,rgba(167,139,250,.07) 0%,transparent 60%);pointer-events:none}
+.dash-header{position:fixed;top:0;left:0;right:0;z-index:10;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(13,17,23,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.dash-logo{display:flex;align-items:center;gap:10px;font-size:.95rem;font-weight:600}
+.dash-logo-icon{width:28px;height:28px;background:var(--grad-blue);border-radius:7px;display:flex;align-items:center;justify-content:center}
+.dash-logo-icon svg{width:14px;height:14px;stroke:#fff}
+.dash-logo-dot{color:var(--text3);margin:0 2px}
+.dash-logo-sub{color:var(--text2);font-weight:400;font-size:.85rem}
+.dash-user{display:flex;align-items:center;gap:10px;padding:5px 14px 5px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:100px}
+.dash-avatar{width:26px;height:26px;background:var(--grad-blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;font-family:'JetBrains Mono',monospace}
+.dash-username{font-size:.8rem;color:var(--text2)}
+.online-dot{width:7px;height:7px;background:var(--teal);border-radius:50%;box-shadow:0 0 6px var(--teal);animation:pulse 2.5s infinite}
+.dash-body{padding-top:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;position:relative;z-index:1}
+.dash-greeting{text-align:center;margin-bottom:3.2rem}
+.time-label{font-size:.78rem;color:var(--text3);letter-spacing:.1em;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace}
+.dash-greeting h2{font-family:'Noto Serif SC',serif;font-size:2rem;font-weight:600;background:linear-gradient(135deg,var(--text) 40%,var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.module-grid{display:flex;gap:1.4rem}
+.module-card{width:196px;border-radius:16px;border:1px solid var(--border);background:var(--grad-card);cursor:pointer;transition:all .28s ease;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.module-card-inner{padding:1.8rem 1.6rem 1.2rem;position:relative;z-index:1}
+.module-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .28s;border-radius:16px}
+.module-card.qa::before{background:radial-gradient(ellipse at 30% 20%,rgba(79,142,247,.2),transparent 70%)}
+.module-card.code::before{background:radial-gradient(ellipse at 30% 20%,rgba(52,212,176,.17),transparent 70%)}
+.module-card.stat::before{background:radial-gradient(ellipse at 30% 20%,rgba(167,139,250,.17),transparent 70%)}
+.module-card:not(.disabled):hover{transform:translateY(-6px);border-color:var(--border2);box-shadow:0 20px 56px rgba(0,0,0,.45)}
+.module-card:not(.disabled):hover::before{opacity:1}
+.module-card.disabled{opacity:.42;cursor:not-allowed}
+.module-card-bar{height:3px;width:100%;border-radius:16px 16px 0 0}
+.qa .module-card-bar{background:var(--grad-blue)}.code .module-card-bar{background:var(--grad-teal)}.stat .module-card-bar{background:linear-gradient(135deg,var(--violet),var(--rose))}
+.module-icon-wrap{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem}
+.qa .module-icon-wrap{background:rgba(79,142,247,.15)}.code .module-icon-wrap{background:rgba(52,212,176,.15)}.stat .module-icon-wrap{background:rgba(167,139,250,.15)}
+.module-icon-wrap svg{width:22px;height:22px}
+.qa .module-icon-wrap svg{stroke:var(--blue)}.code .module-icon-wrap svg{stroke:var(--teal)}.stat .module-icon-wrap svg{stroke:var(--violet)}
+.module-name{font-size:1.05rem;font-weight:600;margin-bottom:.4rem}
+.module-desc{font-size:.75rem;color:var(--text3);line-height:1.7}
+.module-footer{padding:10px 1.6rem 1.4rem;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.module-status{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;display:flex;align-items:center;gap:5px}
+.status-dot{width:5px;height:5px;border-radius:50%}
+.status-on{background:var(--teal);box-shadow:0 0 6px var(--teal)}.status-off{background:var(--text3)}
+.status-on-text{color:var(--teal)}.status-off-text{color:var(--text3)}
+.module-arrow{color:var(--text3);transition:transform .2s,color .2s}
+.module-card:not(.disabled):hover .module-arrow{transform:translateX(3px);color:var(--text)}
+
+/* CHAT */
+#chat{flex-direction:column;align-items:stretch;background:var(--bg)}
+.chat-header{position:fixed;top:0;left:0;right:0;z-index:10;height:60px;padding:0 24px;display:flex;align-items:center;gap:14px;background:rgba(13,17,23,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.chat-back{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text2);cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-size:.8rem;transition:all .18s}
+.chat-back:hover{background:rgba(255,255,255,.09);color:var(--text);border-color:var(--border2)}
+.chat-back svg{width:13px;height:13px}
+.chat-header-info{display:flex;align-items:center;gap:10px}
+.chat-agent-avatar{width:34px;height:34px;border-radius:9px;background:var(--grad-blue);display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(79,142,247,.3)}
+.chat-agent-avatar svg{width:16px;height:16px;stroke:#fff}
+.chat-header-title{font-weight:600;font-size:.95rem}
+.chat-header-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);display:flex;align-items:center;gap:4px}
+.chat-header-sub::before{content:'';display:inline-block;width:5px;height:5px;background:var(--teal);border-radius:50%;box-shadow:0 0 5px var(--teal);animation:pulse 2s infinite}
+.chat-header-right{margin-left:auto}
+.header-tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;padding:3px 10px;border-radius:100px;background:rgba(79,142,247,.12);border:1px solid rgba(79,142,247,.25);color:var(--blue)}
+.chat-messages{flex:1;overflow-y:auto;padding:80px 0 100px;display:flex;flex-direction:column;align-items:center}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-track{background:transparent}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.chat-welcome{text-align:center;padding:3rem 2rem;max-width:520px}
+.welcome-icon{width:64px;height:64px;border-radius:18px;background:var(--grad-blue);display:flex;align-items:center;justify-content:center;margin:0 auto 1.4rem;box-shadow:0 8px 32px rgba(79,142,247,.3)}
+.welcome-icon svg{width:28px;height:28px;stroke:#fff}
+.chat-welcome h3{font-family:'Noto Serif SC',serif;font-size:1.5rem;font-weight:600;margin-bottom:.7rem}
+.chat-welcome p{font-size:.875rem;color:var(--text2);line-height:1.85}
+.chat-tips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:2rem}
+.chat-tip{padding:8px 16px;border:1px solid var(--border);border-radius:100px;background:rgba(255,255,255,.03);font-size:.8rem;color:var(--text2);cursor:pointer;transition:all .2s}
+.chat-tip:hover{border-color:var(--blue);color:var(--text);background:rgba(79,142,247,.08);transform:translateY(-1px)}
+.msg-row{width:100%;max-width:720px;padding:0 24px;margin-bottom:16px;animation:fadeUp .3s ease}
+.msg-row.user{display:flex;justify-content:flex-end}
+.msg-row.ai{display:flex;justify-content:flex-start}
+.msg-wrapper{max-width:72%}
+.msg-bubble{padding:13px 17px;border-radius:14px;line-height:1.8;font-size:.9rem;white-space:pre-wrap;word-break:break-word}
+.msg-row.user .msg-bubble{background:var(--grad-blue);border-radius:14px 14px 4px 14px;box-shadow:0 4px 16px rgba(79,142,247,.25);color:#fff}
+.msg-row.ai .msg-bubble{background:var(--surface);border:1px solid var(--border);border-radius:14px 14px 14px 4px;color:var(--text)}
+/* 流式光标 */
+.msg-bubble.streaming::after{content:'▍';display:inline-block;color:var(--blue);animation:cursorBlink .7s infinite}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+.msg-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:5px;letter-spacing:.06em}
+.msg-row.user .msg-meta{text-align:right}
+.typing-bubble{display:flex;align-items:center;gap:5px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:14px 14px 14px 4px}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:typingBounce 1.3s infinite ease-in-out}
+.typing-dot:nth-child(2){animation-delay:.18s}.typing-dot:nth-child(3){animation-delay:.36s}
+@keyframes typingBounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
+/* 错误气泡 */
+.msg-bubble.error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--rose)}
+.chat-input-bar{position:fixed;bottom:0;left:0;right:0;padding:14px 24px;background:rgba(13,17,23,.94);backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;justify-content:center}
+.chat-input-wrap{width:100%;max-width:720px;display:flex;gap:10px;align-items:flex-end;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px 6px 6px 16px;transition:border-color .2s,box-shadow .2s}
+.chat-input-wrap:focus-within{border-color:rgba(79,142,247,.45);box-shadow:0 0 0 3px var(--blue-glow)}
+.chat-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:'Noto Sans SC',sans-serif;font-size:.9rem;resize:none;min-height:36px;max-height:120px;line-height:1.6;padding:6px 0}
+.chat-input::placeholder{color:var(--text3)}
+.chat-send{width:40px;height:40px;flex-shrink:0;background:var(--grad-blue);border:none;border-radius:10px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 2px 10px rgba(79,142,247,.3)}
+.chat-send:hover{transform:scale(1.06);box-shadow:0 4px 18px rgba(79,142,247,.45)}
+.chat-send:disabled{background:var(--surface);box-shadow:none;cursor:not-allowed;opacity:.5}
+.chat-send svg{width:16px;height:16px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="screen" id="cover">
+  <div class="cover-inner">
+    <div class="cover-chip"><span class="chip-dot"></span>INTELLIGENT EDUCATION · MULTI-AGENT SYSTEM</div>
+    <h1 class="cover-title">数据结构<br><span class="grad">智能教育平台</span></h1>
+    <p class="cover-sub">基于多智能体（Multi-Agent）协作的个性化学习系统<br>苏格拉底式引导 · 个性化学情分析 · 编程深度辅助</p>
+    <div class="cover-tags">
+      <span class="cover-tag ct-blue">知识答疑</span>
+      <span class="cover-tag ct-teal">代码辅助</span>
+      <span class="cover-tag ct-violet">学情分析</span>
+    </div>
+    <div class="cover-divider"><span>选择身份登录</span></div>
+    <div class="role-btns">
+      <button class="role-btn primary" onclick="openLogin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span>我是学生</span>
+      </button>
+      <button class="role-btn" onclick="teacherClick()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4M7 9h4M7 12h6"/></svg>
+        <span>我是教师</span>
+      </button>
+    </div>
+    <p class="cover-footnote">© 2025 数据结构课程组 · 教学智能体实验版本 v1.0</p>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLogin()">✕</button>
+    <div class="modal-chip">STUDENT LOGIN</div>
+    <h2>学生登录</h2>
+    <p class="modal-hint">使用学号和课程密码登录</p>
+    <div class="field">
+      <label>用户名 / 学号</label>
+      <div class="field-wrap">
+        <div class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+        <input type="text" id="usernameInput" placeholder="请输入学号或用户名" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>密码</label>
+      <div class="field-wrap">
+        <div class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <input type="password" id="passwordInput" placeholder="请输入密码"/>
+      </div>
+    </div>
+    <div class="modal-err" id="loginErr"></div>
+    <button class="btn-login" onclick="doLogin()">登 录</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen hidden" id="dashboard">
+  <div class="dash-header">
+    <div class="dash-logo">
+      <div class="dash-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <span>数据结构</span><span class="dash-logo-dot">·</span><span class="dash-logo-sub">智能平台</span>
+    </div>
+    <div class="dash-user">
+      <div class="dash-avatar" id="dashAvatar">S</div>
+      <span class="dash-username" id="dashUsername">学生</span>
+      <div class="online-dot"></div>
+    </div>
+  </div>
+  <div class="dash-body">
+    <div class="dash-greeting">
+      <div class="time-label" id="timeLabel">— 欢迎回来 —</div>
+      <h2 id="greetingText">选择你要使用的功能</h2>
+    </div>
+    <div class="module-grid">
+      <div class="module-card qa" onclick="enterChat()">
+        <div class="module-card-bar"></div>
+        <div class="module-card-inner">
+          <div class="module-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="13" y2="14"/></svg></div>
+          <div class="module-name">知识答疑</div>
+          <div class="module-desc">苏格拉底式引导<br>概念深度解析</div>
+        </div>
+        <div class="module-footer">
+          <div class="module-status"><div class="status-dot status-on"></div><span class="status-on-text">可用</span></div>
+          <div class="module-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+      <div class="module-card code disabled">
+        <div class="module-card-bar"></div>
+        <div class="module-card-inner">
+          <div class="module-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="4" x2="10" y2="20"/></svg></div>
+          <div class="module-name">代码辅助</div>
+          <div class="module-desc">编程思路指导<br>逻辑纠错调试</div>
+        </div>
+        <div class="module-footer"><div class="module-status"><div class="status-dot status-off"></div><span class="status-off-text">开发中</span></div></div>
+      </div>
+      <div class="module-card stat disabled">
+        <div class="module-card-bar"></div>
+        <div class="module-card-inner">
+          <div class="module-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="3 20 21 20"/></svg></div>
+          <div class="module-name">学情分析</div>
+          <div class="module-desc">学习画像追踪<br>薄弱点可视化</div>
+        </div>
+        <div class="module-footer"><div class="module-status"><div class="status-dot status-off"></div><span class="status-off-text">开发中</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="screen hidden" id="chat">
+  <div class="chat-header">
+    <button class="chat-back" onclick="backToDash()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>返回
+    </button>
+    <div class="chat-header-info">
+      <div class="chat-agent-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div>
+        <div class="chat-header-title">知识答疑</div>
+        <div class="chat-header-sub">QA-Agent · 在线</div>
+      </div>
+    </div>
+    <div class="chat-header-right"><div class="header-tag">苏格拉底模式</div></div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-welcome" id="chatWelcome">
+      <div class="welcome-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round" stroke-width="2.5"/></svg></div>
+      <h3>你好，有什么想弄懂的？</h3>
+      <p>我会用引导式问答帮你真正理解知识点<br>而不是直接告诉你答案</p>
+      <div class="chat-tips">
+        <div class="chat-tip" onclick="sendTip(this)">链表删除为什么要找前驱？</div>
+        <div class="chat-tip" onclick="sendTip(this)">栈和队列的区别是什么？</div>
+        <div class="chat-tip" onclick="sendTip(this)">二叉树中序遍历怎么理解？</div>
+        <div class="chat-tip" onclick="sendTip(this)">O(logn) 是怎么来的？</div>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-bar">
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chatInput"
+        placeholder="输入你的问题… （Enter 发送，Shift+Enter 换行）"
+        rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="chat-send" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Coze API 配置 ───────────────────────────────────────────────
+const COZE_API   = 'https://api.coze.cn/v3/chat';
+const BOT_ID     = '7599141513901310003';
+const PAT_TOKEN  = 'pat_YjukLr4lzyVH2zdtQ1ZH0MVTLoMACQcaxFRWQeC6Uu8az9kNbPtrYG7PB8qVtc9J';
+
+// ─── 状态 ────────────────────────────────────────────────────────
+let currentUser      = '';
+let conversationId   = null;   // 保持多轮对话上下文
+let isWaiting        = false;
+let currentAbort     = null;   // AbortController，用于中断流
+
+// ─── 粒子 ────────────────────────────────────────────────────────
+(function(){
+  const cover = document.getElementById('cover');
+  const cols  = ['rgba(79,142,247,','rgba(52,212,176,','rgba(167,139,250,','rgba(251,191,36,'];
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const s=Math.random()*4+1.5, c=cols[Math.floor(Math.random()*cols.length)];
+    p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;`
+      +`background:${c}${Math.random()*.6+.2});`
+      +`animation-duration:${Math.random()*14+10}s;`
+      +`animation-delay:${Math.random()*-15}s;`
+      +`filter:blur(${s>3?1:0}px)`;
+    cover.appendChild(p);
+  }
+})();
+
+// ─── 问候语 ──────────────────────────────────────────────────────
+function setGreeting(){
+  const h = new Date().getHours();
+  const g = h<6?'深夜了，注意休息':h<11?'早上好':h<14?'中午好':h<18?'下午好':'晚上好';
+  document.getElementById('timeLabel').textContent = `— ${g} —`;
+}
+
+// ─── 封面 ────────────────────────────────────────────────────────
+function openLogin(){
+  document.getElementById('loginOverlay').classList.add('active');
+  setTimeout(()=>document.getElementById('usernameInput').focus(), 120);
+}
+function closeLogin(){
+  document.getElementById('loginOverlay').classList.remove('active');
+  document.getElementById('loginErr').textContent = '';
+}
+function teacherClick(){ /* 暂无动作 */ }
+document.getElementById('loginOverlay').addEventListener('click',function(e){if(e.target===this)closeLogin()});
+document.getElementById('passwordInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+// ─── 登录 ────────────────────────────────────────────────────────
+function doLogin(){
+  const user = document.getElementById('usernameInput').value.trim();
+  const pass = document.getElementById('passwordInput').value;
+  const err  = document.getElementById('loginErr');
+  if(!user){ err.textContent='请输入用户名'; return; }
+  if(!pass){ err.textContent='请输入密码'; return; }
+  if(pass.length<3){ err.textContent='用户名或密码不正确'; return; }
+  currentUser = user;
+  err.textContent = '';
+  document.getElementById('dashUsername').textContent = user;
+  document.getElementById('dashAvatar').textContent   = user.charAt(0).toUpperCase();
+  document.getElementById('greetingText').textContent = `你好 ${user}，选择功能开始学习`;
+  setGreeting(); closeLogin(); showScreen('dashboard');
+}
+
+// ─── 导航 ────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+function enterChat(){
+  showScreen('chat');
+  setTimeout(()=>document.getElementById('chatInput').focus(), 300);
+}
+function backToDash(){
+  // 如果正在流式接收，先中断
+  if(currentAbort){ currentAbort.abort(); currentAbort=null; }
+  isWaiting = false;
+  document.getElementById('sendBtn').disabled = false;
+  showScreen('dashboard');
+}
+
+// ─── 输入框 ──────────────────────────────────────────────────────
+function handleKey(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+}
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+function sendTip(el){
+  const i = document.getElementById('chatInput');
+  i.value = el.textContent; autoResize(i); sendMessage();
+}
+
+// ─── 发送消息（流式） ────────────────────────────────────────────
+async function sendMessage(){
+  if(isWaiting) return;
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if(!text) return;
+
+  // 隐藏欢迎区
+  const w = document.getElementById('chatWelcome');
+  if(w) w.style.display = 'none';
+
+  // 渲染用户消息
+  appendMsg('user', text);
+  input.value = ''; input.style.height = 'auto';
+
+  // 进入等待态
+  isWaiting = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  // 插入 AI 气泡（空，流式填充）
+  const { row, bubble } = appendAiBubble();
+
+  // AbortController：可中断流
+  currentAbort = new AbortController();
+
+  try {
+    const body = {
+      bot_id:            BOT_ID,
+      user_id:           currentUser || 'student',
+      stream:            true,
+      auto_save_history: true,
+      additional_messages: [{
+        role:         'user',
+        content:      text,
+        content_type: 'text'
+      }]
+    };
+    // 保持多轮上下文：如果已有 conversation_id 则传入
+    if(conversationId) body.conversation_id = conversationId;
+
+    const res = await fetch(COZE_API, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${PAT_TOKEN}`
+      },
+      body:   JSON.stringify(body),
+      signal: currentAbort.signal
+    });
+
+    if(!res.ok){
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    // 解析 SSE 流
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let   buffer  = '';
+    let   fullText = '';
+
+    bubble.classList.add('streaming');
+
+    while(true){
+      const { done, value } = await reader.read();
+      if(done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // 保留不完整的最后一行
+
+      for(const line of lines){
+        if(!line.trim()) continue;
+
+        // SSE 格式：event: xxx  /  data: {...}
+        if(line.startsWith('event:')){
+          // 记录事件类型（可选）
+          continue;
+        }
+        if(line.startsWith('data:')){
+          const raw = line.slice(5).trim();
+          if(raw === '[DONE]') continue;
+          try {
+            const obj = JSON.parse(raw);
+
+            // 保存 conversation_id（首次响应中携带）
+            if(obj.conversation_id && !conversationId){
+              conversationId = obj.conversation_id;
+            }
+
+            // CONVERSATION_MESSAGE_DELTA：增量文本
+            if(obj.event === 'conversation.message.delta'){
+              const delta = obj.data?.content ?? '';
+              fullText += delta;
+              bubble.textContent = fullText;
+              scrollBottom();
+            }
+
+            // CONVERSATION_MESSAGE_COMPLETED：一条消息完成
+            if(obj.event === 'conversation.message.completed'){
+              if(obj.data?.type === 'answer'){
+                fullText = obj.data.content ?? fullText;
+                bubble.textContent = fullText;
+                scrollBottom();
+              }
+            }
+
+            // CONVERSATION_CHAT_COMPLETED：整轮对话完成
+            if(obj.event === 'conversation.chat.completed'){
+              bubble.classList.remove('streaming');
+            }
+
+          } catch(e){ /* 忽略非 JSON 行 */ }
+        }
+      }
+    }
+
+    bubble.classList.remove('streaming');
+
+    // 追加时间戳
+    appendMsgMeta(row, 'QA-Agent');
+
+  } catch(err){
+    bubble.classList.remove('streaming');
+    if(err.name === 'AbortError'){
+      bubble.textContent = '（已中断）';
+    } else {
+      bubble.classList.add('error');
+      bubble.textContent = `连接失败，请稍后重试。（${err.message}）`;
+      console.error('Coze API error:', err);
+    }
+  } finally {
+    isWaiting = false;
+    currentAbort = null;
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+// ─── DOM 工具 ─────────────────────────────────────────────────────
+function appendMsg(role, text){
+  const c   = document.getElementById('chatMessages');
+  const now = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  const label = role==='user' ? currentUser : 'QA-Agent';
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+  row.innerHTML = `<div class="msg-wrapper">
+    <div class="msg-bubble">${escHtml(text)}</div>
+    <div class="msg-meta">${label} · ${now}</div>
+  </div>`;
+  c.appendChild(row); scrollBottom();
+}
+
+function appendAiBubble(){
+  const c   = document.getElementById('chatMessages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ai';
+  row.innerHTML = `<div class="msg-wrapper">
+    <div class="msg-bubble"></div>
+  </div>`;
+  c.appendChild(row); scrollBottom();
+  const bubble = row.querySelector('.msg-bubble');
+  return { row, bubble };
+}
+
+function appendMsgMeta(row, label){
+  const now    = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  const wrapper = row.querySelector('.msg-wrapper');
+  const meta   = document.createElement('div');
+  meta.className   = 'msg-meta';
+  meta.textContent = `${label} · ${now}`;
+  wrapper.appendChild(meta);
+}
+
+function scrollBottom(){
+  const c = document.getElementById('chatMessages');
+  c.scrollTop = c.scrollHeight;
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>
